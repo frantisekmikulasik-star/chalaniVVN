@@ -707,7 +707,7 @@ async function generateVykazXlsx(){
 }
 
 // ══ SÚBORY NA TLAČ ══
-var TLAC_API='/api';
+var TLAC_GAS='https://script.google.com/macros/s/AKfycbzuiJ1OUSWB7h3QodDSllccuQrj_evMHZmT6Ye3yoBu4XJhK1tsvFJOl6hZYI-ZDjHK/exec';
 
 function tlacMsg(txt,col){
   var el=document.getElementById('tlac-msg');
@@ -725,7 +725,7 @@ function tlacLoadFiles(){
   var list=document.getElementById('tlac-list');
   list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:10px">Načítavam…</div>';
   tlacMsg('');
-  fetch(TLAC_API+'/files')
+  fetch(TLAC_GAS)
     .then(function(r){return r.json();})
     .then(function(files){
       if(!files.length){list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:10px">Žiadne súbory</div>';return;}
@@ -736,15 +736,15 @@ function tlacLoadFiles(){
         item.innerHTML=
           '<span style="font-size:18px">📄</span>'
           +'<span class="ti-name">'+f.name+'</span>'
-          +'<span class="ti-meta">'+tlacFmtSize(f.size)+'&nbsp;&nbsp;'+f.mtime+'</span>'
-          +'<a href="'+TLAC_API+'/files/'+encodeURIComponent(f.name)+'" target="_blank" class="btn btn-ghost" style="padding:3px 9px;font-size:11px" title="Otvoriť">👁</a>'
-          +'<button class="btn btn-del" onclick="tlacDelete(\''+f.name.replace(/'/g,"\\'")+'\')" title="Zmazať">✕</button>';
+          +'<span class="ti-meta">'+tlacFmtSize(f.size)+'</span>'
+          +'<a href="https://drive.google.com/uc?export=download&id='+f.id+'" target="_blank" class="btn btn-ghost" style="padding:3px 9px;font-size:11px" title="Stiahnuť">⬇</a>'
+          +'<button class="btn btn-del" onclick="tlacDelete(\''+f.id+'\',\''+f.name.replace(/'/g,"\\'")+'\')" title="Zmazať">✕</button>';
         list.appendChild(item);
       });
     })
     .catch(function(){
       list.innerHTML='';
-      tlacMsg('Server nedostupný — spusti tlac_server.py','var(--red)');
+      tlacMsg('Chyba načítania súborov','var(--red)');
     });
 }
 
@@ -765,34 +765,37 @@ function tlacUpload(files){
     if(done>=arr.length){
       prog.style.display='none';
       document.getElementById('tlac-input').value='';
-      tlacLoadFiles();
+      setTimeout(tlacLoadFiles,1500);
       return;
     }
     var f=arr[done];
     bar.style.width=Math.round(done/arr.length*100)+'%';
     tlacMsg('Nahrávam: '+f.name+'…');
-    var fd=new FormData();fd.append('file',f);
-    fetch(TLAC_API+'/upload',{method:'POST',body:fd})
-      .then(function(r){return r.json();})
-      .then(function(j){
-        done++;
-        if(j.error)tlacMsg(j.error,'var(--red)');
-        bar.style.width=Math.round(done/arr.length*100)+'%';
-        next();
-      })
-      .catch(function(){
-        tlacMsg('Chyba pri nahrávaní','var(--red)');
-        prog.style.display='none';
-        document.getElementById('tlac-input').value='';
-      });
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var b64=e.target.result.split(',')[1];
+      fetch(TLAC_GAS,{method:'POST',body:JSON.stringify({name:f.name,file:b64,mime:f.type||'application/octet-stream'})})
+        .then(function(r){return r.json();})
+        .then(function(j){
+          done++;
+          if(!j.ok)tlacMsg(j.error||'Chyba','var(--red)');
+          bar.style.width=Math.round(done/arr.length*100)+'%';
+          next();
+        })
+        .catch(function(){
+          done++;
+          bar.style.width=Math.round(done/arr.length*100)+'%';
+          next();
+        });
+    };
+    reader.readAsDataURL(f);
   }
   next();
 }
 
-function tlacDelete(name){
+function tlacDelete(id,name){
   if(!confirm('Zmazať súbor: '+name+'?'))return;
-  fetch(TLAC_API+'/files/'+encodeURIComponent(name),{method:'DELETE'})
-    .then(function(r){return r.json();})
+  fetch(TLAC_GAS,{method:'POST',body:JSON.stringify({action:'delete',id:id})})
     .then(function(){tlacLoadFiles();})
     .catch(function(){tlacMsg('Chyba pri mazaní','var(--red)');});
 }
