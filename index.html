@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partia výroby VVN</title>
+<style>
+:root{
+  --bg:#f0f4f8;--card:#ffffff;--border:#d1dae6;--accent:#1d6fc4;--accent2:#c07800;--accent3:#1a7a50;
+  --text:#1a2535;--muted:#6b7fa0;--green:#1a7a50;--red:#c0392b;--we-bg:#f5f7fa;--hol-bg:#fff0ee;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,#1d3a5f 0%,#1d6fc4 100%);
+  padding:44px 32px 36px;text-align:center;
+}
+.hero-badge{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+  color:#fff;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  padding:4px 14px;border-radius:20px;margin-bottom:16px}
+.hero h1{font-size:clamp(24px,4.5vw,42px);font-weight:800;letter-spacing:-0.5px;
+  margin-bottom:8px;color:#fff}
+.hero p{color:rgba(255,255,255,.75);font-size:14px}
+
+/* MAIN */
+.main{max-width:820px;margin:0 auto;padding:36px 20px}
+.section-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px}
+
+.doc-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:24px;cursor:pointer;transition:all .18s;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.doc-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.12);transform:translateY(-2px)}
+.doc-card.c1:hover{border-color:var(--accent)}
+.doc-card.c2:hover{border-color:var(--accent2)}
+.doc-card.c3:hover{border-color:var(--accent3)}
+.doc-icon{font-size:32px;margin-bottom:12px}
+.doc-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:5px}
+.doc-desc{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:16px}
+.doc-card.c1 .doc-btn{color:var(--accent);font-size:12px;font-weight:700}
+.doc-card.c2 .doc-btn{color:var(--accent2);font-size:12px;font-weight:700}
+.doc-card.c3 .doc-btn{color:var(--accent3);font-size:12px;font-weight:700}
+
+/* DOWNLOAD */
+.dl-group-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px}
+.dl-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:0}
+.dl-btn{display:inline-flex;align-items:center;gap:7px;background:var(--card);
+  border:1px solid var(--border);border-radius:7px;padding:8px 14px;
+  text-decoration:none;color:var(--text);font-size:12px;font-weight:600;
+  transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.dl-btn:hover{border-color:var(--accent);color:var(--accent);
+  box-shadow:0 4px 12px rgba(29,111,196,.15);transform:translateY(-1px)}
+.dl-icon{font-size:15px}
+.dl-name{white-space:nowrap}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;z-index:1000;
+  background:rgba(15,25,45,.6);backdrop-filter:blur(3px);overflow-y:auto;padding:16px}
+.modal.open{display:flex;flex-direction:column;align-items:center}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  width:100%;max-width:1100px;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-head{display:flex;align-items:center;gap:12px;padding:16px 22px;
+  border-bottom:1px solid var(--border);background:#f7f9fc;border-radius:12px 12px 0 0}
+.modal-head h2{flex:1;font-size:16px;font-weight:700;color:var(--text)}
+.modal-body{padding:22px;overflow-y:auto}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:7px;font-size:12px;font-weight:600;border:none;
+  cursor:pointer;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn-green{background:#1a7a50;color:#fff} .btn-green:hover{background:#155f3e}
+.btn-ghost{background:#fff;color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{background:#f0f4f8}
+.btn-blue{background:var(--accent);color:#fff} .btn-blue:hover{background:#155a9e}
+.btn-del{background:#fff0ee;color:var(--red);border:1px solid #f5c5c0;
+  padding:3px 8px;font-size:11px} .btn-del:hover{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* FORM */
+.form-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:18px;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:4px;min-width:110px}
+.fg label{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.fg input,.fg select{background:#fff;border:1px solid var(--border);color:var(--text);
+  padding:7px 10px;border-radius:6px;font-size:13px;font-family:inherit;transition:border-color .15s}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(29,111,196,.12)}
+.add-bar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;margin-bottom:14px;border-radius:8px;border:1px solid var(--border)}
+table.t{width:100%;border-collapse:collapse;font-size:12px}
+table.t th{background:#f0f4f8;color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;padding:9px 10px;border-bottom:1px solid var(--border);
+  white-space:nowrap;text-align:left}
+table.t td{padding:3px 3px;border-bottom:1px solid #edf1f7;vertical-align:middle;background:#fff}
+table.t tr:last-child td{border-bottom:none}
+table.t tr:hover td{background:#f5f8fd}
+table.t input,table.t select{background:#fff;border:1px solid #d1dae6;color:var(--text);
+  padding:5px 7px;border-radius:4px;font-size:12px;font-family:inherit;width:100%;transition:border-color .15s}
+table.t input:focus,table.t select:focus{outline:none;border-color:var(--accent);background:#fff;
+  box-shadow:0 0 0 2px rgba(29,111,196,.1)}
+table.t select option{background:#fff}
+.tc{text-align:center}
+
+/* výkaz row types */
+table.t tr.we-row td{background:var(--we-bg)!important}
+table.t tr.hol-row td{background:var(--hol-bg)!important}
+table.t tr.we-row:hover td{background:#eef0f5!important}
+table.t tr.hol-row:hover td{background:#fde8e5!important}
+
+/* sigs */
+.sigs{display:none}
+
+/* TLAČ upload */
+.tlac-drop{border:2px dashed var(--border);border-radius:10px;padding:28px 20px;text-align:center;
+  cursor:pointer;transition:all .18s;background:#fafcff;color:var(--muted)}
+.tlac-drop:hover,.tlac-drop.drag{border-color:var(--accent);background:#eef5ff;color:var(--accent)}
+.tlac-drop svg{display:block;margin:0 auto 10px}
+.tlac-list{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+.tlac-item{display:flex;align-items:center;gap:10px;background:#f7f9fc;border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;font-size:12px}
+.tlac-item .ti-name{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlac-item .ti-meta{color:var(--muted);white-space:nowrap;font-size:11px}
+.tlac-prog{height:4px;background:#e0e7f0;border-radius:3px;overflow:hidden;margin-top:10px;display:none}
+.tlac-prog-bar{height:100%;width:0;background:var(--accent);transition:width .2s}
+.tlac-msg{font-size:12px;margin-top:8px;min-height:18px;text-align:center}
+
+/* PRINT */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{margin:0;size:A4}
+  html{-webkit-print-color-adjust:exact}
+  body{background:#fff!important}
+  .modal{display:none!important}
+  .modal.printing{display:block!important;position:static!important;background:none!important;padding:8mm!important}
+  .modal-box{border:none!important;background:#fff!important;max-width:100%!important;
+    border-radius:0!important;box-shadow:none!important}
+  .modal-head{background:#f0f0f0!important;border-bottom:2px solid #333!important;
+    padding:8px 4px!important;border-radius:0!important}
+  .modal-head h2{color:#000!important;font-size:14px!important}
+  .modal-close,.print-bar,.add-bar,.hero,.main,.btn,.no-print{display:none!important}
+  .modal-body{padding:6px 0!important}
+  .form-row{margin-bottom:8px!important}
+  .fg label{color:#555!important;font-size:9px!important}
+  .fg input,.fg select{border:none!important;border-bottom:1px solid #aaa!important;
+    background:#fff!important;color:#000!important;border-radius:0!important;padding:2px 2px!important;
+    box-shadow:none!important}
+  .tbl-wrap{border:1px solid #ccc!important;border-radius:0!important}
+  table.t th{background:#ebebeb!important;color:#333!important;padding:5px 7px!important}
+  table.t td{border-bottom:1px solid #e5e5e5!important;padding:3px 6px!important}
+  table.t input,table.t select{border:none!important;background:#fff!important;color:#000!important;box-shadow:none!important}
+  table.t tr.we-row td{background:#f5f5f5!important}
+  table.t tr.hol-row td{background:#fff5f5!important}
+  tr{page-break-inside:avoid}
+  .p-header{display:block!important}
+}
+.p-header{display:none;margin-bottom:12px}
+.p-header h2{font-size:16px;font-weight:800;border-bottom:2px solid #333;padding-bottom:5px;margin-bottom:8px;color:#000}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">⚡ Interný portál</div>
+  <h1>Partia výroby VVN</h1>
+  <p>Pracovné dokumenty a evidencia pre linky vysokého napätia</p>
+</div>
+
+<div class="main">
+  <div class="section-label">Dokumenty</div>
+  <div class="doc-grid">
+
+    <div class="doc-card c3" onclick="openModal('gen')">
+      <div class="doc-icon">⬇️</div>
+      <div class="doc-title">Stiahnuť Stav Km/Mth ako Excel</div>
+      <div class="doc-desc">Vyber dátum (alebo nastav posledný pracovný deň mesiaca) a stiahni vyplnený xlsx súbor.</div>
+      <div class="doc-btn">➔ Generovať xlsx</div>
+    </div>
+
+    <div class="doc-card c1" onclick="openModal('genv')">
+      <div class="doc-icon">📥</div>
+      <div class="doc-title">Stiahnuť Výkaz práce ako Excel</div>
+      <div class="doc-desc">Vyber meno, mesiac a rok — stiahni xlsx výkaz so všetkými dňami vyplnenými.</div>
+      <div class="doc-btn">➔ Generovať xlsx</div>
+    </div>
+
+    <div class="doc-card c2" onclick="openModal('tlac')">
+      <div class="doc-icon">🖨️</div>
+      <div class="doc-title">Súbory na TLAČ</div>
+      <div class="doc-desc">Chalani nahrávajú vyplnené tlačivá. Otvor, skontroluj a vytlač.</div>
+      <div class="doc-btn">➔ Otvoriť</div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ═══ SÚBORY NA TLAČ ═══ -->
+<div class="modal" id="modal-tlac">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-head">
+      <span style="font-size:18px">🖨️</span>
+      <h2>Súbory na TLAČ</h2>
+      <div class="print-bar" style="display:flex;gap:8px">
+        <button class="btn btn-ghost modal-close" onclick="closeModal('tlac')">✕ Zavrieť</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="tlac-drop" id="tlac-drop" onclick="document.getElementById('tlac-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="this.classList.remove('drag');tlacDrop(event)">
+        <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+          <path d="M12 16V4m0 0L8 8m4-4l4 4"/><rect x="2" y="16" width="20" height="6" rx="2" ry="2" stroke-dasharray="2 2"/>
+        </svg>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px">Presuň súbory sem alebo klikni</div>
+        <div style="font-size:11px">Max. 15 MB na súbor · PDF, DOCX, XLSX, JPG, PNG…</div>
+      </div>
+      <input type="file" id="tlac-input" multiple style="display:none" onchange="tlacUpload(this.files)">
+      <div class="tlac-prog" id="tlac-prog"><div class="tlac-prog-bar" id="tlac-prog-bar"></div></div>
+      <div class="tlac-msg" id="tlac-msg"></div>
+      <div class="tlac-list" id="tlac-list"></div>
+    </div>
+  </div>
+</div>
+<!-- ═══ GENERÁTOR KM xlsx ═══ -->
+<div class="modal" id="modal-gen">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-head">
+      <span style="font-size:18px">⬇️</span>
+      <h2>Stiahnuť Stav Km/Mth ako Excel</h2>
+      <div class="print-bar" style="display:flex;gap:8px">
+        <button class="btn btn-ghost modal-close" onclick="closeModal('gen')">✕ Zavrieť</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:18px">
+        Vyber mesiac a rok — automaticky sa nastaví posledný pracovný deň. Dátum môžeš aj manuálne zmeniť.
+      </p>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="fg">
+          <label>Mesiac</label>
+          <select id="gen-mes" onchange="setGenLastWD()">
+            <option value="1">Január</option><option value="2">Február</option><option value="3">Marec</option>
+            <option value="4">Apríl</option><option value="5">Máj</option><option value="6">Jún</option>
+            <option value="7">Júl</option><option value="8">August</option><option value="9">September</option>
+            <option value="10">Október</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div class="fg" style="min-width:90px">
+          <label>Rok</label>
+          <input id="gen-rok" type="number" value="2026" min="2020" max="2100" oninput="setGenLastWD()">
+        </div>
+        <div class="fg" style="align-self:flex-end">
+          <button class="btn btn-ghost" onclick="setGenLastWD()" style="height:36px;white-space:nowrap">↩ Posl. prac. deň</button>
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:22px">
+        <div class="fg" style="flex:1">
+          <label>Dátum stavu (upraviteľný)</label>
+          <input id="gen-datum" type="date" style="font-size:14px">
+        </div>
+      </div>
+      <div id="gen-preview" style="font-size:13px;color:var(--muted);margin-bottom:20px;min-height:20px"></div>
+      <button class="btn btn-green" onclick="generateKmXlsx()" style="width:100%;justify-content:center;padding:12px;font-size:14px">
+        ⬇️ Stiahnuť Excel (.xlsx)
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ═══ GENERÁTOR VÝKAZ xlsx ═══ -->
+<div class="modal" id="modal-genv">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-head">
+      <span style="font-size:18px">📥</span>
+      <h2>Stiahnuť Výkaz práce ako Excel</h2>
+      <div class="print-bar" style="display:flex;gap:8px">
+        <button class="btn btn-ghost modal-close" onclick="closeModal('genv')">✕ Zavrieť</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:18px">
+        Vyplň meno, vyber mesiac a rok — stiahni xlsx výkaz so všetkými dňami (víkendy a sviatky zvýraznené).
+      </p>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="fg" style="flex:2;min-width:180px">
+          <label>Meno pracovníka</label>
+          <input id="genv-meno" placeholder="Priezvisko Meno — môžeš/nemusíš">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:12px">
+        <div class="fg" style="flex:2">
+          <label>Stavba (predvyplní všetky riadky)</label>
+          <input id="genv-stavba" placeholder="Názov stavby — môžeš/nemusíš">
+        </div>
+      </div>
+      <div class="form-row" style="margin-bottom:22px">
+        <div class="fg">
+          <label>Mesiac</label>
+          <select id="genv-mes">
+            <option value="1">Január</option><option value="2">Február</option><option value="3">Marec</option>
+            <option value="4">Apríl</option><option value="5">Máj</option><option value="6">Jún</option>
+            <option value="7">Júl</option><option value="8">August</option><option value="9">September</option>
+            <option value="10">Október</option><option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+        <div class="fg" style="min-width:90px">
+          <label>Rok</label>
+          <input id="genv-rok" type="number" value="2026" min="2020" max="2100">
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="generateVykazXlsx()" style="width:100%;justify-content:center;padding:12px;font-size:14px">
+        ⬇️ Stiahnuť Výkaz (.xlsx)
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Helpers ──
+const SK_M=['Január','Február','Marec','Apríl','Máj','Jún','Júl','August','September','Október','November','December'];
+const SK_DF=['Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota'];
+
+function daysInMonth(m,y){ return new Date(y, m, 0).getDate(); }
+function dow(y,m,d){ return new Date(y, m-1, d).getDay(); }
+function isWE(y,m,d){ const w=dow(y,m,d); return w===0||w===6; }
+
+// Sviatky podľa zákona č.241/1993 Z.z. v znení zákona č.261/2025 Z.z. (účinnosť od 1.11.2025)
+// 17.11 — TRVALO odstránený z dní pracovného pokoja
+// 01.09, 28.10 — nie sú dňami pracovného pokoja (predchádzajúce zmeny)
+// 08.05, 15.09 — dočasne zrušené len pre rok 2026
+const HOLIDAYS={
+  2025:['01-01','01-06','04-18','04-21','05-01','05-08','07-05','08-29','09-15','11-01','12-24','12-25','12-26'],
+  2026:['01-01','01-06','04-03','04-06','05-01','07-05','08-29','11-01','12-24','12-25','12-26'],
+  2027:['01-01','01-06','03-26','03-29','05-01','05-08','07-05','08-29','09-15','11-01','12-24','12-25','12-26'],
+};
+function isHol(y,m,d){
+  const list=HOLIDAYS[y]||[];
+  return list.includes(String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0'));
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+// parse date string 'YYYY-MM-DD' using local time (avoid UTC offset bug)
+function parseDateLocal(s){
+  if(!s) return null;
+  const p=s.split('-');
+  if(p.length!==3) return null;
+  return new Date(+p[0], +p[1]-1, +p[2]);
+}
+
+// ── Modal ──
+function openModal(id){
+  document.getElementById('modal-'+id).classList.add('open');
+  document.body.style.overflow='hidden';
+  if(id==='vykaz') buildVykaz();
+  if(id==='km'){ updateKmHead(); renderKm(); }
+  if(id==='gen'){ initGen(); }
+  if(id==='genv'){ initGenV(); }
+  if(id==='tlac'){ tlacLoadFiles(); }
+}
+function closeModal(id){
+  document.getElementById('modal-'+id).classList.remove('open');
+  document.body.style.overflow='';
+}
+document.querySelectorAll('.modal').forEach(function(m){
+  m.addEventListener('click', function(e){ if(e.target===m) closeModal(m.id.replace('modal-','')); });
+});
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape') document.querySelectorAll('.modal.open').forEach(function(m){ closeModal(m.id.replace('modal-','')); });
+});
+function tlacit(id){
+  var el=document.getElementById('modal-'+id);
+  el.classList.add('printing');
+  window.print();
+  el.classList.remove('printing');
+}
+
+// (inicializácia mesiac/rok sa deje v initGen/initGenV pri otvorení modalu)
+
+// ══ VÝKAZ PRÁCE ══
+var vData={};
+var vCurrentMY='';
+
+function getVykazMY(){
+  var m=+document.getElementById('v-mes').value;
+  var y=+document.getElementById('v-rok').value;
+  return m+'-'+y;
+}
+function onVykazMonthChange(){
+  var newMY=getVykazMY();
+  if(newMY!==vCurrentMY){
+    vData={};
+    vCurrentMY=newMY;
+  }
+  buildVykaz();
+}
+function updateVykazTitle(){
+  var m=+document.getElementById('v-mes').value;
+  var y=+document.getElementById('v-rok').value;
+  if(!y||y<1900||y>2100) return;
+  var meno=document.getElementById('v-meno').value.trim();
+  var title='Výkaz - '+SK_M[m-1]+' '+y+(meno?' — '+meno:'');
+  document.getElementById('vykaz-head').textContent=title;
+  document.getElementById('vykaz-p-head').textContent=title;
+}
+function buildVykaz(){
+  var m=+document.getElementById('v-mes').value;
+  var y=+document.getElementById('v-rok').value;
+  if(!m||!y||y<1900||y>2100) return;
+
+  vCurrentMY=m+'-'+y;
+  var meno=document.getElementById('v-meno').value.trim();
+  var title='Výkaz - '+SK_M[m-1]+' '+y+(meno?' — '+meno:'');
+  document.getElementById('vykaz-head').textContent=title;
+  document.getElementById('vykaz-p-head').textContent=title;
+
+  var days=daysInMonth(m,y);
+  var html='<table class="t"><thead><tr>'
+    +'<th style="min-width:90px;text-align:center">Dátum</th>'
+    +'<th style="min-width:96px;text-align:center">Deň</th>'
+    +'<th style="min-width:180px;text-align:center">Stavba</th>'
+    +'<th style="min-width:78px;text-align:center">Nadčas</th>'
+    +'<th style="min-width:78px;text-align:center">Výškové</th>'
+    +'<th style="text-align:center">Neprítomnosti / Info</th>'
+    +'</tr></thead><tbody>';
+
+  for(var d=1; d<=days; d++){
+    var we=isWE(y,m,d);
+    var hol=isHol(y,m,d);
+    var cls=hol?'hol-row':(we?'we-row':'');
+    var dayName=SK_DF[dow(y,m,d)];
+    var dayStyle=hol?'color:var(--red);font-weight:600':(we?'color:var(--muted)':'');
+    var key=y+'-'+m+'-'+d;
+    var rv=vData[key]||{};
+    html+='<tr class="'+cls+'">'
+      +'<td style="padding:4px 9px;white-space:nowrap;font-family:Consolas,monospace;font-size:11px">'+d+'.'+pad2(m)+'.'+y+'</td>'
+      +'<td style="padding:4px 9px;font-size:12px;'+dayStyle+'">'+dayName+(hol?' ●':'')+'</td>'
+      +'<td><input type="text" value="'+esc(rv.stavba||'')+'" oninput="(vData[\''+key+'\']=vData[\''+key+'\']||{}).stavba=this.value"></td>'
+      +'<td><input type="text" value="'+esc(rv.nadcas||'')+'" style="text-align:right" oninput="(vData[\''+key+'\']=vData[\''+key+'\']||{}).nadcas=this.value"></td>'
+      +'<td><input type="text" value="'+esc(rv.vyskove||'')+'" style="text-align:right" oninput="(vData[\''+key+'\']=vData[\''+key+'\']||{}).vyskove=this.value"></td>'
+      +'<td><input type="text" value="'+esc(rv.info||'')+'" oninput="(vData[\''+key+'\']=vData[\''+key+'\']||{}).info=this.value"></td>'
+      +'</tr>';
+  }
+  html+='</tbody></table>';
+  document.getElementById('vykaz-tbl').innerHTML=html;
+}
+
+// ══ STAV KM / MTH ══
+var vehicles=[
+  {meno:'Pinteš František',    typ:'Toyota Hilux',       spz:'BT 984 ET', val:'', jed:'Km'},
+  {meno:'Michalisko Martin',   typ:'MAN',                spz:'BL 216 RM', val:'', jed:'Km'},
+  {meno:'Žikavský Jozef',      typ:'IVECO Daily 4x4',    spz:'BL 995 TJ', val:'', jed:'Km'},
+  {meno:'Sekereš Ján',         typ:'TATRA',              spz:'AA 770 JT', val:'', jed:'Km'},
+  {meno:'Pinteš František',    typ:'MAN',                spz:'BL 103 RN', val:'', jed:'Km'},
+  {meno:'Nagy Jozef',          typ:'Toyota Hilux',       spz:'AA 119 IK', val:'', jed:'Km'},
+  {meno:'Hajla Matej',         typ:'MP27 TATRA',         spz:'BA 732 LO', val:'', jed:'Km'},
+  {meno:'Vanyo Martin',        typ:'MP38 MAN',           spz:'BL 616 ES', val:'', jed:'Km'},
+  {meno:'Prešinský Patrik',    typ:'Toyota Hilux',       spz:'BT 545 DO', val:'', jed:'Km'},
+  {meno:'Fedor Štefan',        typ:'Toyota Hilux',       spz:'BT 273 DO', val:'', jed:'Km'},
+  {meno:'Mikulášik František', typ:'MP44 MAN',           spz:'BL 872 TV', val:'', jed:'Km'},
+  {meno:'Fedor Štefan',        typ:'Traktor McCormick',  spz:'BT 102 DD', val:'', jed:'Mth'},
+  {meno:'Málik Jozef',         typ:'Traktor McCormick',  spz:'BT 689 DP', val:'', jed:'Mth'},
+  {meno:'Žikavský Jozef',      typ:'Traktor JOHN DEERE', spz:'BA 331 AD', val:'', jed:'Mth'},
+  {meno:'Čaplák Dominik',      typ:'JCB 4CX',            spz:'BAZA72',    val:'', jed:'Mth'},
+  {meno:'Aleksič Uroš',        typ:'TATRA',              spz:'BT 387 FX', val:'', jed:'Km'},
+];
+
+function updateKmHead(){
+  var v=document.getElementById('km-datum').value;
+  if(!v) return;
+  var dt=parseDateLocal(v);
+  if(!dt) return;
+  var dn=['Nedeľa','Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota'];
+  var lbl='Stav Km / Mth na vozidlách ('
+    +dt.getDate()+'.'+(dt.getMonth()+1)+'.'+dt.getFullYear()
+    +' \u2013 '+dn[dt.getDay()]+')';
+  document.getElementById('km-head').textContent=lbl;
+  document.getElementById('km-p-head').textContent=lbl;
+}
+
+function addKmRow(){ vehicles.push({meno:'',typ:'',spz:'',val:'',jed:'Km'}); renderKm(); }
+function removeKmRow(i){ vehicles.splice(i,1); renderKm(); }
+
+function renderKm(){
+  var tbody=document.getElementById('km-tbody');
+  tbody.innerHTML='';
+  vehicles.forEach(function(v,i){
+    var isMth=v.jed==='Mth';
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td class="tc" style="color:var(--muted);font-size:11px;padding:4px 8px">'+(i+1)+'.</td>'
+      +'<td><input type="text" value="'+esc(v.meno)+'" placeholder="Priezvisko Meno" oninput="vehicles['+i+'].meno=this.value"></td>'
+      +'<td><input type="text" value="'+esc(v.typ)+'" placeholder="Typ vozidla" oninput="vehicles['+i+'].typ=this.value"></td>'
+      +'<td><input type="text" value="'+esc(v.spz)+'" placeholder="ŠPZ" style="text-align:center" oninput="vehicles['+i+'].spz=this.value"></td>'
+      +'<td><input type="number" value="'+esc(v.val)+'" placeholder="\u2014" style="text-align:right;color:'+(isMth?'var(--accent2)':'var(--accent)')+';font-weight:700;font-family:Consolas,monospace" oninput="vehicles['+i+'].val=this.value"></td>'
+      +'<td><select onchange="vehicles['+i+'].jed=this.value;renderKm()">'
+        +'<option value="Km"'+((!isMth)?' selected':'')+'>Km</option>'
+        +'<option value="Mth"'+(isMth?' selected':'')+'>Mth</option>'
+      +'</select></td>'
+      +'<td class="no-print"><button class="btn btn-del" onclick="removeKmRow('+i+')">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function initGen(){
+  var n=new Date();
+  document.getElementById('gen-mes').value=n.getMonth()+1;
+  document.getElementById('gen-rok').value=n.getFullYear();
+  setGenLastWD();
+}
+
+// ══ GENERÁTOR KM xlsx ══
+function lastWorkingDay(m,y){
+  var d=daysInMonth(m,y);
+  while(true){
+    var w=dow(y,m,d);
+    var isWEnd=(w===0||w===6);
+    var holList=HOLIDAYS[y]||[];
+    var isHolDay=holList.includes(pad2(m)+'-'+pad2(d));
+    if(!isWEnd&&!isHolDay) return d;
+    d--;
+  }
+}
+function setGenLastWD(){
+  var m=+document.getElementById('gen-mes').value;
+  var y=+document.getElementById('gen-rok').value;
+  if(!y||y<1900||y>2100) return;
+  var d=lastWorkingDay(m,y);
+  document.getElementById('gen-datum').value=y+'-'+pad2(m)+'-'+pad2(d);
+  updateGenPreview();
+}
+function updateGenPreview(){
+  var v=document.getElementById('gen-datum').value;
+  if(!v){document.getElementById('gen-preview').textContent='';return;}
+  var dt=parseDateLocal(v);
+  if(!dt){document.getElementById('gen-preview').textContent='';return;}
+  var d=dt.getDate(),m=dt.getMonth()+1,y=dt.getFullYear();
+  var dn=SK_DF[dt.getDay()];
+  document.getElementById('gen-preview').innerHTML=
+    '<span style="color:var(--accent3);font-weight:700">Dátum v súbore: </span>'
+    +d+'. '+SK_M[dt.getMonth()]+' '+y+' ('+dn+')';
+}
+document.getElementById('gen-datum').addEventListener('input', updateGenPreview);
+
+function generateKmXlsx(){
+  var v=document.getElementById('gen-datum').value;
+  if(!v){alert('Vyber dátum');return;}
+  var dt=parseDateLocal(v);
+  if(!dt){alert('Neplatný dátum');return;}
+  var d=dt.getDate(), m=dt.getMonth()+1, y=dt.getFullYear();
+  var dn=SK_DF[dt.getDay()];
+  var titleTxt='Stav Km/Mth na vozidlách ('+d+'. '+SK_M[dt.getMonth()]+' '+y+') :';
+  var colEHead=d+'.'+m+'.'+y+' ('+dn+')';
+
+  var XLS=window.XLSX;
+  if(!XLS){alert('Knižnica xlsx sa ešte načítava, skús znova');return;}
+
+  var wb=XLS.utils.book_new();
+  var ws={};
+
+  var bAll={top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}};
+  var wFill={patternType:'solid',fgColor:{rgb:'FFFFFF'}};
+  var gFill={patternType:'solid',fgColor:{rgb:'DDDDDD'}};
+  var lgFill={patternType:'solid',fgColor:{rgb:'F8F8F8'}};
+  var cen={horizontal:'center',vertical:'center',wrapText:false};
+  var vcen={horizontal:'center',vertical:'center',wrapText:false};
+  var rgt={horizontal:'right',vertical:'center',wrapText:false};
+
+  // Riadok 1 — titulok
+  ws['A1']={v:titleTxt,t:'s',s:{font:{sz:16,bold:true,name:'Calibri'},fill:wFill,border:bAll,alignment:{horizontal:'center',vertical:'center'}}};
+  ['B1','C1','D1','E1'].forEach(function(c){
+    ws[c]={v:'',t:'s',s:{font:{sz:16,bold:true,name:'Calibri'},fill:wFill,border:bAll,alignment:cen}};
+  });
+
+  // Riadok 2 — hlavičky
+  var hdrs=['p.č.','Priezvisko, Meno','Typ vozidla','ŠPZ',colEHead];
+  ['A','B','C','D','E'].forEach(function(col,i){
+    ws[col+'2']={v:hdrs[i],t:'s',s:{font:{sz:12,bold:true,name:'Calibri'},fill:gFill,border:bAll,alignment:cen}};
+  });
+
+  // Riadky 3–18 — vozidlá
+  vehicles.forEach(function(veh,i){
+    var r=i+3;
+    ws['A'+r]={v:(i+1)+'.',t:'s',s:{font:{sz:12,bold:true,name:'Calibri'},fill:wFill,border:bAll,alignment:cen}};
+    ws['B'+r]={v:veh.meno,t:'s',s:{font:{sz:12,bold:true,name:'Calibri'},fill:lgFill,border:bAll,alignment:vcen}};
+    ws['C'+r]={v:veh.typ,t:'s',s:{font:{sz:12,bold:false,name:'Calibri'},fill:wFill,border:bAll,alignment:vcen}};
+    ws['D'+r]={v:veh.spz,t:'s',s:{font:{sz:12,bold:true,name:'Calibri'},fill:wFill,border:bAll,alignment:cen}};
+    ws['E'+r]={v:veh.jed,t:'s',s:{font:{sz:13,bold:true,name:'Calibri'},fill:lgFill,border:bAll,alignment:rgt}};
+  });
+
+  ws['!ref']='A1:E18';
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}}];
+  // A4 landscape (297mm) s úzkymi okrajmi ~27cm → 6+30+26+18+36 = 116 wch
+  ws['!cols']=[{wch:6},{wch:30},{wch:26},{wch:18},{wch:36}];
+  ws['!rows']=[{hpt:36},{hpt:22}].concat(Array(16).fill({hpt:24}));
+
+  ws['!margins']={left:0.2,right:0.2,top:0.4,bottom:0.4,header:0.2,footer:0.2};
+  ws['!pageSetup']={orientation:'landscape',paperSize:9};
+  XLS.utils.book_append_sheet(wb,ws,'Hárok1');
+  xlsxSave(wb,'Hárok1','Stav Km-Mth za '+SK_M[m-1]+' '+y+'.xlsx','landscape');
+}
+
+// ══ GENERÁTOR VÝKAZ xlsx ══
+function initGenV(){
+  var n=new Date();
+  document.getElementById('genv-mes').value=n.getMonth()+1;
+  document.getElementById('genv-rok').value=n.getFullYear();
+}
+
+function toXlsSerial(y,m,d){
+  return Math.round((new Date(y,m-1,d)-new Date(1899,11,30))/86400000);
+}
+
+// Šablóna Výkaz December 2026 (xlsx base64) — štýly, okraje, fonty zachované 1:1
+var VYKAZ_TMPL='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';
+
+// JS getDay() → index do sharedStrings: 0=Ne,1=Po,2=Ut,3=St,4=Štv,5=Pi,6=So
+var _DS =[15,9,10,11,12,13,14];   // normálny deň
+var _DSH=[22,16,17,18,19,20,21];  // sviatok (s ●)
+
+function _escX(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function _buildSS(title,meno,stavba){
+  var ss=[title,'','Meno:','Dátum','Deň','Stavba','Nadčas','Výškové','Neprítomnosti / Info',
+          'Pondelok','Utorok','Streda','Štvrtok','Piatok','Sobota','Nedeľa',
+          'Pondelok ●','Utorok ●','Streda ●','Štvrtok ●','Piatok ●','Sobota ●','Nedeľa ●',
+          'Podpis:',meno||'',stavba||''];
+  var x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="'+ss.length+'" uniqueCount="'+ss.length+'">';
+  ss.forEach(function(s){x+='<si><t>'+_escX(s)+'</t></si>';});
+  return x+'</sst>';
+}
+
+function _buildSheet(year,month,meno,stavba){
+  var days=daysInMonth(month,year);
+  var sp=8+days,f1=sp+1,f2=sp+2;
+  function isH(d){return isHol(year,month,d);}
+  function isFirstH(d){return isH(d)&&(d===1||!isH(d-1));}
+  var menoIdx=meno?24:1, stavbaIdx=stavba?25:1;
+  var sb=[];
+  sb.push('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n');
+  sb.push('<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac xr xr2 xr3" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac" xmlns:xr="http://schemas.microsoft.com/office/spreadsheetml/2014/revision" xmlns:xr2="http://schemas.microsoft.com/office/spreadsheetml/2015/revision2" xmlns:xr3="http://schemas.microsoft.com/office/spreadsheetml/2016/revision3" xr:uid="{00000000-0001-0000-0000-000000000000}">');
+  sb.push('<dimension ref="A1:F'+f2+'"/>');
+  sb.push('<sheetViews><sheetView tabSelected="1" workbookViewId="0"><selection activeCell="A1" sqref="A1"/></sheetView></sheetViews>');
+  sb.push('<sheetFormatPr defaultRowHeight="14.4" x14ac:dyDescent="0.3"/>');
+  sb.push('<cols><col min="1" max="1" width="12.109375" customWidth="1"/><col min="2" max="2" width="11.88671875" customWidth="1"/><col min="3" max="3" width="22.5546875" customWidth="1"/><col min="4" max="5" width="9.109375" customWidth="1"/><col min="6" max="6" width="30.6640625" customWidth="1"/></cols>');
+  sb.push('<sheetData>');
+  sb.push('<row r="1" spans="1:6" ht="20.1" customHeight="1" x14ac:dyDescent="0.3"><c r="A1" s="20" t="s"><v>0</v></c><c r="B1" s="21" t="s"><v>1</v></c><c r="C1" s="21" t="s"><v>1</v></c><c r="D1" s="21" t="s"><v>1</v></c><c r="E1" s="21" t="s"><v>1</v></c><c r="F1" s="21" t="s"><v>1</v></c></row>');
+  sb.push('<row r="2" spans="1:6" ht="9.9" customHeight="1" x14ac:dyDescent="0.3"><c r="A2" s="21" t="s"><v>1</v></c><c r="B2" s="21" t="s"><v>1</v></c><c r="C2" s="21" t="s"><v>1</v></c><c r="D2" s="21" t="s"><v>1</v></c><c r="E2" s="21" t="s"><v>1</v></c><c r="F2" s="21" t="s"><v>1</v></c></row>');
+  sb.push('<row r="3" spans="1:6" ht="5.1" customHeight="1" x14ac:dyDescent="0.3"/>');
+  sb.push('<row r="4" spans="1:6" ht="15.75" customHeight="1" x14ac:dyDescent="0.3"><c r="A4" s="22" t="s"><v>2</v></c><c r="B4" s="22" t="s"><v>1</v></c><c r="C4" s="25" t="s"><v>'+menoIdx+'</v></c><c r="D4" s="26"/><c r="E4" s="26"/><c r="F4" s="27"/></row>');
+  sb.push('<row r="5" spans="1:6" ht="9.9" customHeight="1" x14ac:dyDescent="0.3"><c r="A5" s="22" t="s"><v>1</v></c><c r="B5" s="22" t="s"><v>1</v></c><c r="C5" s="28"/><c r="D5" s="29"/><c r="E5" s="29"/><c r="F5" s="30"/></row>');
+  sb.push('<row r="6" spans="1:6" ht="6.9" customHeight="1" x14ac:dyDescent="0.3"/>');
+  sb.push('<row r="7" spans="1:6" ht="21.9" customHeight="1" x14ac:dyDescent="0.3"><c r="A7" s="3" t="s"><v>3</v></c><c r="B7" s="3" t="s"><v>4</v></c><c r="C7" s="3" t="s"><v>5</v></c><c r="D7" s="3" t="s"><v>6</v></c><c r="E7" s="3" t="s"><v>7</v></c><c r="F7" s="3" t="s"><v>8</v></c></row>');
+  for(var d=1;d<=days;d++){
+    var r=d+7;
+    var jsDay=new Date(year,month-1,d).getDay();
+    var hol=isH(d),we=jsDay===0||jsDay===6;
+    var serial=toXlsSerial(year,month,d);
+    var dayIdx=hol?_DSH[jsDay]:_DS[jsDay];
+    var sA,sB,sC,sD,sF;
+    if(hol){sA=isFirstH(d)?14:19;sB=15;sC=16;sD=17;sF=18;}
+    else if(we){sA=13;sB=9;sC=10;sD=11;sF=12;}
+    else{sA=4;sB=5;sC=6;sD=1;sF=7;}
+    sb.push('<row r="'+r+'" spans="1:6" ht="18" customHeight="1" x14ac:dyDescent="0.3">');
+    sb.push('<c r="A'+r+'" s="'+sA+'"><v>'+serial+'</v></c>');
+    sb.push('<c r="B'+r+'" s="'+sB+'" t="s"><v>'+dayIdx+'</v></c>');
+    sb.push('<c r="C'+r+'" s="'+sC+'" t="s"><v>'+stavbaIdx+'</v></c>');
+    sb.push('<c r="D'+r+'" s="'+sD+'"/><c r="E'+r+'" s="'+sD+'"/><c r="F'+r+'" s="'+sF+'"/>');
+    sb.push('</row>');
+  }
+  sb.push('<row r="'+sp+'" spans="1:6" ht="4.95" customHeight="1" x14ac:dyDescent="0.3"><c r="A'+sp+'" s="23" t="s"><v>1</v></c><c r="B'+sp+'" s="23" t="s"><v>1</v></c><c r="C'+sp+'" s="2" t="s"><v>1</v></c><c r="D'+sp+'" s="2" t="s"><v>1</v></c><c r="E'+sp+'" s="2" t="s"><v>1</v></c><c r="F'+sp+'" s="2" t="s"><v>1</v></c></row>');
+  sb.push('<row r="'+f1+'" spans="1:6" ht="15" customHeight="1" x14ac:dyDescent="0.3"><c r="A'+f1+'" s="23" t="s"><v>1</v></c><c r="B'+f1+'" s="23" t="s"><v>1</v></c><c r="C'+f1+'" s="36" t="s"><v>23</v></c><c r="D'+f1+'" s="31" t="s"><v>1</v></c><c r="E'+f1+'" s="32" t="s"><v>1</v></c><c r="F'+f1+'" s="33" t="s"><v>1</v></c></row>');
+  sb.push('<row r="'+f2+'" spans="1:6" ht="12.75" customHeight="1" x14ac:dyDescent="0.3"><c r="A'+f2+'" s="23" t="s"><v>1</v></c><c r="B'+f2+'" s="23" t="s"><v>1</v></c><c r="C'+f2+'" s="37" t="s"><v>1</v></c><c r="D'+f2+'" s="34" t="s"><v>1</v></c><c r="E'+f2+'" s="24" t="s"><v>1</v></c><c r="F'+f2+'" s="35" t="s"><v>1</v></c></row>');
+  sb.push('</sheetData>');
+  sb.push('<mergeCells count="6"><mergeCell ref="A1:F2"/><mergeCell ref="A4:B5"/><mergeCell ref="A'+sp+':B'+f2+'"/><mergeCell ref="C'+f1+':C'+f2+'"/><mergeCell ref="D'+f1+':F'+f2+'"/><mergeCell ref="C4:F5"/></mergeCells>');
+  sb.push('<pageMargins left="0.25" right="0.25" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>');
+  sb.push('<pageSetup paperSize="9" orientation="portrait" r:id="rId1"/>');
+  sb.push('<ignoredErrors><ignoredError sqref="A1:F3 A9:F'+f2+' A8:B8 D8:F8 A6:F7 A4:C4 A5:B5" numberStoredAsText="1"/></ignoredErrors>');
+  sb.push('</worksheet>');
+  return sb.join('');
+}
+
+async function generateVykazXlsx(){
+  var meno=document.getElementById('genv-meno').value.trim();
+  var stavba=document.getElementById('genv-stavba').value.trim();
+  var m=+document.getElementById('genv-mes').value;
+  var y=+document.getElementById('genv-rok').value;
+  if(!m||!y||y<1900||y>2100){alert('Vyber mesiac a rok');return;}
+  if(!window.pako){alert('Knižnica pako sa ešte načítava, skús znova');return;}
+  var monthName=SK_M[m-1];
+  var title='Výkaz - '+monthName+' '+y+' :';
+  var bin=atob(VYKAZ_TMPL);
+  var src=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)src[i]=bin.charCodeAt(i);
+  var ssXml=_buildSS(title,meno,stavba);
+  var shXml=_buildSheet(y,m,meno,stavba);
+  var step1=await rebuildZip(src,'xl/sharedStrings.xml',function(_){return ssXml;});
+  if(!step1){alert('Chyba generovania výkazu');return;}
+  var step2=await rebuildZip(step1,'xl/worksheets/sheet1.xml',function(_){return shXml;});
+  var out=step2||step1;
+  var fname=(meno?meno+' - ':'')+'Výkaz '+monthName+' '+y+'.xlsx';
+  var blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);document.body.removeChild(a);},300);
+}
+
+// ══ SÚBORY NA TLAČ ══
+var TLAC_API='/api';
+
+function tlacMsg(txt,col){
+  var el=document.getElementById('tlac-msg');
+  el.textContent=txt;
+  el.style.color=col||'var(--muted)';
+}
+
+function tlacFmtSize(b){
+  if(b<1024)return b+' B';
+  if(b<1048576)return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(2)+' MB';
+}
+
+function tlacLoadFiles(){
+  var list=document.getElementById('tlac-list');
+  list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:10px">Načítavam…</div>';
+  tlacMsg('');
+  fetch(TLAC_API+'/files')
+    .then(function(r){return r.json();})
+    .then(function(files){
+      if(!files.length){list.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:10px">Žiadne súbory</div>';return;}
+      list.innerHTML='';
+      files.forEach(function(f){
+        var item=document.createElement('div');
+        item.className='tlac-item';
+        item.innerHTML=
+          '<span style="font-size:18px">📄</span>'
+          +'<span class="ti-name">'+f.name+'</span>'
+          +'<span class="ti-meta">'+tlacFmtSize(f.size)+'&nbsp;&nbsp;'+f.mtime+'</span>'
+          +'<a href="'+TLAC_API+'/files/'+encodeURIComponent(f.name)+'" target="_blank" class="btn btn-ghost" style="padding:3px 9px;font-size:11px" title="Otvoriť">👁</a>'
+          +'<button class="btn btn-del" onclick="tlacDelete(\''+f.name.replace(/'/g,"\\'")+'\')" title="Zmazať">✕</button>';
+        list.appendChild(item);
+      });
+    })
+    .catch(function(){
+      list.innerHTML='';
+      tlacMsg('Server nedostupný — spusti tlac_server.py','var(--red)');
+    });
+}
+
+function tlacDrop(e){
+  e.preventDefault();
+  tlacUpload(e.dataTransfer.files);
+}
+
+function tlacUpload(files){
+  if(!files||!files.length)return;
+  var arr=Array.from(files);
+  var prog=document.getElementById('tlac-prog');
+  var bar=document.getElementById('tlac-prog-bar');
+  prog.style.display='block';bar.style.width='0%';
+  tlacMsg('');
+  var done=0;
+  function next(){
+    if(done>=arr.length){
+      prog.style.display='none';
+      document.getElementById('tlac-input').value='';
+      tlacLoadFiles();
+      return;
+    }
+    var f=arr[done];
+    bar.style.width=Math.round(done/arr.length*100)+'%';
+    tlacMsg('Nahrávam: '+f.name+'…');
+    var fd=new FormData();fd.append('file',f);
+    fetch(TLAC_API+'/upload',{method:'POST',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        done++;
+        if(j.error)tlacMsg(j.error,'var(--red)');
+        bar.style.width=Math.round(done/arr.length*100)+'%';
+        next();
+      })
+      .catch(function(){
+        tlacMsg('Chyba pri nahrávaní','var(--red)');
+        prog.style.display='none';
+        document.getElementById('tlac-input').value='';
+      });
+  }
+  next();
+}
+
+function tlacDelete(name){
+  if(!confirm('Zmazať súbor: '+name+'?'))return;
+  fetch(TLAC_API+'/files/'+encodeURIComponent(name),{method:'DELETE'})
+    .then(function(r){return r.json();})
+    .then(function(){tlacLoadFiles();})
+    .catch(function(){tlacMsg('Chyba pri mazaní','var(--red)');});
+}
+
+// ── ZIP rebuild: číta všetky entries zo src, patchuje target, stavia nový ZIP ──
+async function rebuildZip(src, targetPath, patchXml) {
+  function r16(b,p){return(b[p]|(b[p+1]<<8))>>>0;}
+  function r32(b,p){return((b[p]|(b[p+1]<<8)|(b[p+2]<<16)|(b[p+3]<<24))>>>0);}
+  function setU16(b,p,v){b[p]=v&255;b[p+1]=(v>>8)&255;}
+  function setU32(b,p,v){b[p]=v&255;b[p+1]=(v>>8)&255;b[p+2]=(v>>16)&255;b[p+3]=(v>>24)&255;}
+  var CT=new Uint32Array(256);
+  for(var i=0;i<256;i++){var c=i;for(var j=0;j<8;j++)c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);CT[i]=c;}
+  function crc32(d){var v=0xFFFFFFFF;for(var i=0;i<d.length;i++)v=(v>>>8)^CT[(v^d[i])&255];return(v^0xFFFFFFFF)>>>0;}
+
+  // Nájdi EOCD
+  var eocd=-1;
+  for(var i=src.length-22;i>=0;i--){if(r32(src,i)===0x06054b50){eocd=i;break;}}
+  if(eocd<0)return null;
+  var nE=r16(src,eocd+8), cdOff=r32(src,eocd+16);
+
+  // Načítaj všetky entries
+  var entries=[];
+  var cp=cdOff;
+  for(var e=0;e<nE;e++){
+    if(r32(src,cp)!==0x02014b50)break;
+    var vMade=r16(src,cp+4),vNeed=r16(src,cp+6),flags=r16(src,cp+8);
+    var meth=r16(src,cp+10),mTime=r16(src,cp+12),mDate=r16(src,cp+14);
+    var crc=r32(src,cp+16),cSz=r32(src,cp+20),uSz=r32(src,cp+24);
+    var fnL=r16(src,cp+28),exL=r16(src,cp+30),coL=r16(src,cp+32);
+    var dsk=r16(src,cp+34),iAt=r16(src,cp+36),eAt=r32(src,cp+38),lOff=r32(src,cp+42);
+    var nameB=src.slice(cp+46,cp+46+fnL);
+    var cdEx=src.slice(cp+46+fnL,cp+46+fnL+exL);
+    var comm=src.slice(cp+46+fnL+exL,cp+46+fnL+exL+coL);
+    var name=new TextDecoder().decode(nameB);
+    // Local file header → compData
+    var lfp=lOff;
+    if(r32(src,lfp)!==0x04034b50)return null;
+    var lFnL=r16(src,lfp+26),lExL=r16(src,lfp+28);
+    var lEx=src.slice(lfp+30+lFnL,lfp+30+lFnL+lExL);
+    var dSt=lfp+30+lFnL+lExL;
+    var compD=src.slice(dSt,dSt+cSz);
+    entries.push({name,nameB,vMade,vNeed,flags,meth,mTime,mDate,crc,cSz,uSz,cdEx,comm,lEx,compD,dsk,iAt,eAt});
+    cp+=46+fnL+exL+coL;
+  }
+
+  // Patch target entry
+  var pk=window.pako;
+  for(var i=0;i<entries.length;i++){
+    var en=entries[i];
+    if(en.name!==targetPath)continue;
+    var rawBytes;
+    if(en.meth===0){rawBytes=en.compD.slice();}
+    else if(en.meth===8){
+      if(!pk)return null;
+      try{rawBytes=pk.inflateRaw(en.compD);}catch(e){return null;}
+    }else return null;
+
+    var xml=new TextDecoder('utf-8').decode(rawBytes);
+    xml=patchXml(xml);
+    var newRaw=new TextEncoder().encode(xml);
+    var newComp;
+    if(en.meth===0){
+      newComp=newRaw; // STORED: dáta sa ukladajú bez kompresie
+    }else{
+      try{newComp=pk.deflateRaw(newRaw,{level:6});}catch(e){return null;}
+    }
+    en.compD=newComp;en.cSz=newComp.length;en.uSz=newRaw.length;en.crc=crc32(newRaw);
+    // en.meth sa nemení (zachováme pôvodnú metódu)
+    break;
+  }
+
+  // Postav nový ZIP od začiatku
+  var localParts=[],lOffsets=[],pos=0;
+  for(var i=0;i<entries.length;i++){
+    var en=entries[i];
+    lOffsets.push(pos);
+    var lh=new Uint8Array(30+en.nameB.length+en.lEx.length);
+    setU32(lh,0,0x04034b50);setU16(lh,4,en.vNeed);
+    setU16(lh,6,en.flags&~8);// bit3 zrušíme (data descriptor)
+    setU16(lh,8,en.meth);setU16(lh,10,en.mTime);setU16(lh,12,en.mDate);
+    setU32(lh,14,en.crc);setU32(lh,18,en.cSz);setU32(lh,22,en.uSz);
+    setU16(lh,26,en.nameB.length);setU16(lh,28,en.lEx.length);
+    lh.set(en.nameB,30);lh.set(en.lEx,30+en.nameB.length);
+    localParts.push(lh,en.compD);
+    pos+=lh.length+en.compD.length;
+  }
+  var cdStart=pos;
+  var cdParts=[];
+  for(var i=0;i<entries.length;i++){
+    var en=entries[i];
+    var cd=new Uint8Array(46+en.nameB.length+en.cdEx.length+en.comm.length);
+    setU32(cd,0,0x02014b50);setU16(cd,4,en.vMade);setU16(cd,6,en.vNeed);
+    setU16(cd,8,en.flags&~8);setU16(cd,10,en.meth);setU16(cd,12,en.mTime);setU16(cd,14,en.mDate);
+    setU32(cd,16,en.crc);setU32(cd,20,en.cSz);setU32(cd,24,en.uSz);
+    setU16(cd,28,en.nameB.length);setU16(cd,30,en.cdEx.length);setU16(cd,32,en.comm.length);
+    setU16(cd,34,en.dsk);setU16(cd,36,en.iAt);setU32(cd,38,en.eAt);setU32(cd,42,lOffsets[i]);
+    cd.set(en.nameB,46);cd.set(en.cdEx,46+en.nameB.length);cd.set(en.comm,46+en.nameB.length+en.cdEx.length);
+    cdParts.push(cd);pos+=cd.length;
+  }
+  var cdSz=pos-cdStart;
+  var eocdB=new Uint8Array(22);
+  setU32(eocdB,0,0x06054b50);setU16(eocdB,4,0);setU16(eocdB,6,0);
+  setU16(eocdB,8,entries.length);setU16(eocdB,10,entries.length);
+  setU32(eocdB,12,cdSz);setU32(eocdB,16,cdStart);setU16(eocdB,20,0);
+
+  var all=[].concat(localParts,cdParts,[eocdB]);
+  var total=all.reduce(function(s,p){return s+p.length;},0);
+  var out=new Uint8Array(total);var op=0;
+  all.forEach(function(p){out.set(p,op);op+=p.length;});
+  return out;
+}
+
+// ── xlsxSave ──
+function xlsxSave(wb, sheetName, filename, orientation){
+  var XLS = window.XLSX;
+  var b64 = XLS.write(wb, {bookType:'xlsx', type:'base64'});
+  var bin = atob(b64);
+  var src = new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) src[i]=bin.charCodeAt(i);
+
+  function doDownload(data){
+    var blob=new Blob([data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);document.body.removeChild(a);},300);
+  }
+
+  if(orientation!=='landscape'){doDownload(src);return;}
+
+  var wsIdx=Math.max(0,wb.SheetNames.indexOf(sheetName));
+  var wsPath='xl/worksheets/sheet'+(wsIdx+1)+'.xml';
+
+  rebuildZip(src, wsPath, function(xml){
+    // Odober pageSetup (aj s r:id čo odkazuje na printerSettings.bin s portrait)
+    xml=xml.replace(/<pageSetup[^>]*\/>/g,'').replace(/<pageSetup[^>]*>[\s\S]*?<\/pageSetup>/g,'');
+    var tag='<pageSetup paperSize="9" orientation="landscape"/>';
+    if(xml.includes('<ignoredErrors>')) return xml.replace('<ignoredErrors>',tag+'<ignoredErrors>');
+    return xml.replace('</worksheet>',tag+'</worksheet>');
+  }).then(function(out){doDownload(out||src);}).catch(function(){doDownload(src);});
+}
+</script>
+<script src="https://unpkg.com/pako@2.1.0/dist/pako.min.js"></script>
+<script src="https://unpkg.com/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+</body>
+</html>
