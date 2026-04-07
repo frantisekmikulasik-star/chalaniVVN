@@ -1,1 +1,1 @@
-vvn chalaniska 
+vvn chalani ska 
